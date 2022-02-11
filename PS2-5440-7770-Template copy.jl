@@ -48,14 +48,6 @@ md"""
 #### Convex analysis: compute the extreme pathways
 """
 
-# ╔═╡ 7094522a-0812-4dab-ba83-8a586f4c4f44
-md"""
-1b. There are **6** extreme pathways. v₃ is the reaction that produces urea. 
-"""
-
-# ╔═╡ cadd88e7-70ea-46c7-acec-ef9c2f8b7271
-
-
 # ╔═╡ b473b17e-3bf5-4b6c-af24-fe57b5a7e7e9
 md"""
 #### Metabolite connectivity array (MCA)
@@ -73,17 +65,55 @@ md"""
 
 # ╔═╡ 2d6d8dc4-7805-4351-bd68-6cdaf12f3d09
 md"""
-1b. There are 6 extreme pathways. v₃ is the reaction that produces urea, and it is non zero in 2 of the pathways, only 2 extreme pathways will result in urea.
+1b. There are 4 extreme pathways. v₃ is the reaction that produces urea, and it is non zero in 2 of the pathways, only 2 extreme pathways will result in urea.
 """
 
 # ╔═╡ f2eae514-1b7c-4bd8-bca9-4c711815f13d
 html"""
-<p> Reaction fractions <br>. 
-	
-v₁: 
+<p> Reaction fractions: <br>  
 
+v₁ : 2/4 </br>
+v₂ : 2/4 </br>
+v₃ : 2/4 </br>
+v₄ : 4/4 </br>
+v₅ : 2/4 </br>
+b₁ : 4/4 </br>
+b₂ : 2/4 </br>
+b₃ : 2/4 </br>
+b₄ : 2/4 </br>
+b₅ : 2/4 </br>
+b₆ : 2/4 </br>
 
 </p>
+"""
+
+# ╔═╡ 5b8257b3-230c-4acb-b1f2-6cca178403e1
+md"""
+1c. The diagonal elements of the MCA give the number of reactions that a particular metabolite participates in (either as a reactant or product). The diagonal of the RCA gives the number of metabolites participating in a reaction (either as a reactant or product). 
+"""
+
+# ╔═╡ 64e2ef77-e1b5-4ced-841a-06a73de67e13
+html"""
+<p> Connectivity of the metabolites: <br> 
+1. Arginine </br>
+2. Citrulline, Ornithine </br>
+3. Argininosuccinate, Aspartate, Carbamoyl Phosphate, Fumarate, Urea </br>
+</p>
+
+"""
+
+# ╔═╡ b67259a5-8f42-4cba-bedd-6ab878e86fde
+html"""
+<p> Connectivity of reactions: <br> 
+1. v₁, v₂, v₃, v₄ </br>
+2. v₅ </br>
+3. b₁, b₂, b₃, b₄, b₅, b₆
+</p>
+"""
+
+# ╔═╡ b2bbe6d9-19ea-4434-a721-52cb62e069a9
+md"""
+There doesn't appear to be a correlation between reaction connectivity and extreme pathway reaction frequency. Therefore, the number of metabolites participating in the reaction does not affect how much the reaction is used in an extreme pathway.
 """
 
 # ╔═╡ 267865de-1b5c-4579-861b-c6c46beb4739
@@ -140,7 +170,8 @@ begin
 	push!(reaction_array,"b₃, Fumarate, ∅, false")
 	push!(reaction_array,"b₄, Urea, ∅, false")
 	push!(reaction_array,"b₅, ∅, Ornithine, true")
-	push!(reaction_array,"b₆, ∅, Citruline, false")
+	push!(reaction_array,"b₆, Arginine, ∅, false")
+	
 	
 	# compute the stoichiometric matrix -
 	# the optional expand arguement = should we split reversible reactions? (default: false)
@@ -167,14 +198,26 @@ MCA = B*transpose(B)
 # ╔═╡ aebe9da1-9cd3-4c53-9bb5-49a6ba4ebbea
 diag(MCA)
 
+# ╔═╡ 2feb2c35-b3c4-4e59-87a7-a2c1883c5449
+diag(MCA)
+
 # ╔═╡ 4520fc6e-7305-487e-924d-af22406e6d45
 RCA = transpose(B)*B
 
 # ╔═╡ e8b14809-812f-42a3-9843-8272ecc00b1d
 diag(RCA)
 
+# ╔═╡ 7e65a730-b396-4229-9064-65cb4bcb87cb
+diag(RCA)
+
 # ╔═╡ cb007868-e26a-4a37-9127-cf9fbdccd7c0
 reaction_name_array[3]
+
+# ╔═╡ a307b780-e453-4838-9476-2f3df885516a
+species_array
+
+# ╔═╡ 2e01c813-a59f-4126-be91-ed4afe54ffb2
+reaction_name_array
 
 # ╔═╡ 97b0763d-dcab-4afa-b660-52e18b3d523f
 begin
@@ -1227,8 +1270,6 @@ version = "0.9.1+5"
 # ╠═e2080a08-8cbe-46af-8089-03d6e240af61
 # ╠═9737f03c-4026-43f5-8669-88fffe7d6c0a
 # ╠═cb007868-e26a-4a37-9127-cf9fbdccd7c0
-# ╠═7094522a-0812-4dab-ba83-8a586f4c4f44
-# ╠═cadd88e7-70ea-46c7-acec-ef9c2f8b7271
 # ╟─b473b17e-3bf5-4b6c-af24-fe57b5a7e7e9
 # ╠═999ae1fd-5341-4f66-9db2-dec53fa0cd49
 # ╠═aebe9da1-9cd3-4c53-9bb5-49a6ba4ebbea
@@ -1237,7 +1278,15 @@ version = "0.9.1+5"
 # ╠═e8b14809-812f-42a3-9843-8272ecc00b1d
 # ╟─03de7e66-3503-4496-b621-10d6c7cb7c21
 # ╟─2d6d8dc4-7805-4351-bd68-6cdaf12f3d09
-# ╠═f2eae514-1b7c-4bd8-bca9-4c711815f13d
+# ╟─f2eae514-1b7c-4bd8-bca9-4c711815f13d
+# ╟─5b8257b3-230c-4acb-b1f2-6cca178403e1
+# ╠═2feb2c35-b3c4-4e59-87a7-a2c1883c5449
+# ╠═a307b780-e453-4838-9476-2f3df885516a
+# ╟─64e2ef77-e1b5-4ced-841a-06a73de67e13
+# ╠═7e65a730-b396-4229-9064-65cb4bcb87cb
+# ╠═2e01c813-a59f-4126-be91-ed4afe54ffb2
+# ╟─b67259a5-8f42-4cba-bedd-6ab878e86fde
+# ╟─b2bbe6d9-19ea-4434-a721-52cb62e069a9
 # ╠═67f5db98-88d0-11ec-27ac-b57538a166f4
 # ╠═267865de-1b5c-4579-861b-c6c46beb4739
 # ╟─ab2bcfd5-3ba7-4388-8a3c-2cb95fba989a
