@@ -6,102 +6,21 @@ using InteractiveUtils
 
 # ╔═╡ 6b1ad54f-61e4-490d-9032-7a557e8dc82f
 md"""
-## CHEME 5440/7770: Structural Analysis of the Urea Cycle Network (PS2)
+## CHEME 5440/7770: Structural Analysis of the Urea Cycle (PS2)
 """
 
 # ╔═╡ 7057c8e4-9e94-4a28-a885-07f5c96ebe39
 html"""
-<p style="font-size:20px;"> Amy You</br>
+<p style="font-size:20px;">Amy You</br>
 Smith School of Chemical and Biomolecular Engineering, Cornell University, Ithaca NY 14850</p>
 """
 
-# ╔═╡ 95de0123-0c61-4434-bfb9-2772405ddecb
+# ╔═╡ 87a183bc-3857-4189-8103-18c46ff3245d
 md"""
 #### Build the stoichiometric array
 """
 
-# ╔═╡ 48d3ae44-a9fc-4174-a4c3-270306c3b08b
-pidx = 5
-
-# ╔═╡ 692db9df-1dec-4803-92bc-10584cb4ecc6
-function ingredients(path::String)
-	
-	# this is from the Julia source code (evalfile in base/loading.jl)
-	# but with the modification that it returns the module instead of the last object
-	name = Symbol("lib")
-	m = Module(name)
-	Core.eval(m,
-        Expr(:toplevel,
-             :(eval(x) = $(Expr(:core, :eval))($name, x)),
-             :(include(x) = $(Expr(:top, :include))($name, x)),
-             :(include(mapexpr::Function, x) = $(Expr(:top, :include))(mapexpr, $name, x)),
-             :(include($path))))
-	m
-end
-
-# ╔═╡ 0cac34f9-ebad-435e-abde-d247b3d3d67c
-begin
-
-	# import some packages -
-	using PlutoUI
-	using LinearAlgebra
-	using RowEchelon
-	using IterativeSolvers
-	using Combinatorics
-	using Plots
-	using GLPK
-	using PrettyTables
-	
-	# setup paths -
-	const _PATH_TO_NOTEBOOK = pwd()
-	const _PATH_TO_SRC = joinpath(_PATH_TO_NOTEBOOK,"src")
-
-	# load the class lib as LectureLib -
-	lib = ingredients(joinpath(_PATH_TO_SRC, "Include.jl"));
-
-	# return -
-	nothing
-end
-
-# ╔═╡ f4053c75-d6d5-4c89-8cd1-5428bfa208f5
-begin 
-
-	# Setup a collection of reaction strings -
-	reaction_array = Array{String,1}()
-
-	# encode the reactions -
-	# internal reactions -
-	push!(reaction_array,"v₁, Aspartate+Citrulline, Argininosuccinate,false")
-	push!(reaction_array,"v₂, Argininosuccinate, Fumarate+Arginine, false")
-	push!(reaction_array,"v₃, Arginine, Ornithine+Urea, false")
-	push!(reaction_array,"v₄, Ornithine+Carbamoyl Phosphate, Citrulline, false")
-	push!(reaction_array,"v₅, Citrulline, Arginine, false")
-
-	# exchange reactions 
-	push!(reaction_array,"b₁, ∅, Carbamoyl Phosphate, false")
-	push!(reaction_array,"b₂, ∅, Aspartate, false")
-	push!(reaction_array,"b₃, Fumarate, ∅, false")
-	push!(reaction_array,"b₄, Urea, ∅, false")
-	
-	# compute the stoichiometric matrix -
-	# the optional expand arguement = should we split reversible reactions? (default: false)
-	(S, species_array, reaction_name_array) = lib.build_stoichiometric_matrix(reaction_array);
-	#expand=true
-	# show -
-	nothing
-	
-end
-
-# ╔═╡ 78158e1f-75a1-4d13-b664-a71508dc371b
-(ℳ,ℛ) = size(S)
-
-# ╔═╡ 46359bdd-1d48-4d76-b229-72df140b8588
-species_array
-
-# ╔═╡ 096dae0c-d3b9-46e5-b017-9616d76f5c16
-S
-
-# ╔═╡ 290e324f-3c30-4a93-ac74-a89310a3303a
+# ╔═╡ 527e9a00-0401-4159-bc77-f4ba246246d2
 function binary_stoichiometric_matrix(matrix::Array{Float64,2})::Array{Int64,2}
 
 	# initialize -
@@ -124,66 +43,173 @@ function binary_stoichiometric_matrix(matrix::Array{Float64,2})::Array{Int64,2}
 	return B
 end
 
-# ╔═╡ 826d5250-4bb4-441c-b9ec-05474aa985ab
-B = S |> binary_stoichiometric_matrix
-
 # ╔═╡ 6970dab5-16bd-4898-b88d-723cb1b3d89e
 md"""
-#### Convex analysis: extreme pathways
+#### Convex analysis: compute the extreme pathways
 """
 
-# ╔═╡ 97b0763d-dcab-4afa-b660-52e18b3d523f
-begin
+# ╔═╡ 7094522a-0812-4dab-ba83-8a586f4c4f44
+md"""
+1b. There are **6** extreme pathways. v₃ is the reaction that produces urea. 
+"""
 
-	begin 
+# ╔═╡ cadd88e7-70ea-46c7-acec-ef9c2f8b7271
 
-		# compute the extreme pathways Tableu -
-		PM = lib.expa(S)
-		
-		# P constaints the extreme pathways (rows) and 𝒩 is the "balanced" array (should be all zeros) -
-		P = PM[:,1:ℛ]
-		𝒩 = PM[:,(ℛ+1):end]
-	
-		# show -
-		nothing
-	end
-	
-end
-
-# ╔═╡ ef642527-9188-47ce-9c5b-a6dd83643170
-size(P)
-
-# ╔═╡ 09680068-b8a5-43b7-8e5e-c5cdae9ae00c
-rank(P)
-
-# ╔═╡ 5e52fc43-7835-4f92-a417-5ac2a599f78b
-P
 
 # ╔═╡ b473b17e-3bf5-4b6c-af24-fe57b5a7e7e9
 md"""
 #### Metabolite connectivity array (MCA)
 """
 
-# ╔═╡ 999ae1fd-5341-4f66-9db2-dec53fa0cd49
-MCA = B*transpose(B)
-
 # ╔═╡ b7e5d1a6-57ed-4d09-a039-a4bd12386367
 md"""
 #### Reaction connectivity array (RCA)
 """
 
+# ╔═╡ 03de7e66-3503-4496-b621-10d6c7cb7c21
+md"""
+#### Problem Set Answers
+"""
+
+# ╔═╡ 2d6d8dc4-7805-4351-bd68-6cdaf12f3d09
+md"""
+1b. There are 6 extreme pathways. v₃ is the reaction that produces urea, and it is non zero in 2 of the pathways, only 2 extreme pathways will result in urea.
+"""
+
+# ╔═╡ f2eae514-1b7c-4bd8-bca9-4c711815f13d
+html"""
+<p> Reaction fractions <br>. 
+	
+v₁: 
+
+
+</p>
+"""
+
+# ╔═╡ 267865de-1b5c-4579-861b-c6c46beb4739
+function ingredients(path::String)
+	
+	# this is from the Julia source code (evalfile in base/loading.jl)
+	# but with the modification that it returns the module instead of the last object
+	name = Symbol("lib")
+	m = Module(name)
+	Core.eval(m,
+        Expr(:toplevel,
+             :(eval(x) = $(Expr(:core, :eval))($name, x)),
+             :(include(x) = $(Expr(:top, :include))($name, x)),
+             :(include(mapexpr::Function, x) = $(Expr(:top, :include))(mapexpr, $name, x)),
+             :(include($path))))
+	m
+end
+
+# ╔═╡ 67f5db98-88d0-11ec-27ac-b57538a166f4
+begin
+	# import some packages -
+	using PlutoUI
+	using PrettyTables
+	using LinearAlgebra
+	using Plots
+	
+	# setup paths -
+	const _PATH_TO_NOTEBOOK = pwd()
+	const _PATH_TO_SRC = joinpath(_PATH_TO_NOTEBOOK,"src")
+
+	# load the PS2 code lib -
+	lib = ingredients(joinpath(_PATH_TO_SRC, "Include.jl"));
+
+	# return -
+	nothing
+end
+
+# ╔═╡ 5338451e-3c4b-4030-bbbb-42eaf4209a89
+begin
+	# Setup a collection of reaction strings -
+	reaction_array = Array{String,1}()
+
+	# encode the reactions -
+	# internal reactions -
+	push!(reaction_array,"v₁, Aspartate+Citrulline, Argininosuccinate,false")
+	push!(reaction_array,"v₂, Argininosuccinate, Fumarate+Arginine, false")
+	push!(reaction_array,"v₃, Arginine, Ornithine+Urea, false")
+	push!(reaction_array,"v₄, Ornithine+Carbamoyl Phosphate, Citrulline, false")
+	push!(reaction_array,"v₅, 2*Citrulline, 2*Arginine, true")
+
+	# exchange reactions 
+	push!(reaction_array,"b₁, ∅, Carbamoyl Phosphate, false")
+	push!(reaction_array,"b₂, ∅, Aspartate, false")
+	push!(reaction_array,"b₃, Fumarate, ∅, false")
+	push!(reaction_array,"b₄, Urea, ∅, false")
+	push!(reaction_array,"b₅, ∅, Ornithine, true")
+	push!(reaction_array,"b₆, ∅, Citruline, false")
+	
+	# compute the stoichiometric matrix -
+	# the optional expand arguement = should we split reversible reactions? (default: false)
+	(S, species_array, reaction_name_array) = lib.build_stoichiometric_matrix(reaction_array;);
+	# show -
+	nothing
+end
+
+# ╔═╡ 2fda4bdd-d1bb-4a40-830f-351f0396aab3
+(ℳ,ℛ) = size(S)
+
+# ╔═╡ 58b065f8-e0d6-4a5a-963e-ec3c74c93bb2
+species_array
+
+# ╔═╡ 71c5c116-1596-41d4-a3d9-19dfc562cd58
+S
+
+# ╔═╡ 7a236c7a-cd55-4cdf-8eb3-6fdd2c2fcb41
+B = S |> binary_stoichiometric_matrix
+
+# ╔═╡ 999ae1fd-5341-4f66-9db2-dec53fa0cd49
+MCA = B*transpose(B)
+
+# ╔═╡ aebe9da1-9cd3-4c53-9bb5-49a6ba4ebbea
+diag(MCA)
+
 # ╔═╡ 4520fc6e-7305-487e-924d-af22406e6d45
 RCA = transpose(B)*B
 
-# ╔═╡ 83405a30-faf8-4b6a-8769-5e9b7039faa1
+# ╔═╡ e8b14809-812f-42a3-9843-8272ecc00b1d
 diag(RCA)
+
+# ╔═╡ cb007868-e26a-4a37-9127-cf9fbdccd7c0
+reaction_name_array[3]
+
+# ╔═╡ 97b0763d-dcab-4afa-b660-52e18b3d523f
+begin
+	# compute the extreme pathways Tableu -
+	PM = lib.expa(S)
+	
+	# P constaints the extreme pathways (rows) and 𝒩 is the "balanced" array (should be all zeros) -
+	P = PM[:,1:ℛ]
+	𝒩 = PM[:,(ℛ+1):end]
+
+	# show -
+	nothing
+end
+
+# ╔═╡ c4e12e34-607a-4d04-a932-ddb7257722ed
+size(P)
+
+# ╔═╡ a14b63fa-bf1a-4f76-8e1d-045f73f5220b
+rank(P)
+
+# ╔═╡ 43e8450e-2c58-4a5c-8379-7516fc704474
+P
+
+# ╔═╡ e2080a08-8cbe-46af-8089-03d6e240af61
+𝒩
+
+# ╔═╡ 9737f03c-4026-43f5-8669-88fffe7d6c0a
+PM
 
 # ╔═╡ ab2bcfd5-3ba7-4388-8a3c-2cb95fba989a
 html"""
 <style>
 main {
     max-width: 900px;
-    width: 75%;
+    width: 70%;
     margin: auto;
     font-family: "Roboto, monospace";
 }
@@ -197,23 +223,15 @@ a {
 # ╔═╡ 00000000-0000-0000-0000-000000000001
 PLUTO_PROJECT_TOML_CONTENTS = """
 [deps]
-Combinatorics = "861a8166-3701-5b0c-9a16-15d98fcdc6aa"
-GLPK = "60bf3e95-4087-53dc-ae20-288a0d20c6a6"
-IterativeSolvers = "42fd0dbc-a981-5370-80f2-aaf504508153"
 LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
 Plots = "91a5bcdd-55d7-5caf-9e0b-520d859cae80"
 PlutoUI = "7f904dfe-b85e-4ff6-b463-dae2292396a8"
 PrettyTables = "08abe8d2-0d0c-5749-adfa-8a2ac140af0d"
-RowEchelon = "af85af4c-bcd5-5d23-b03a-a909639aa875"
 
 [compat]
-Combinatorics = "~1.0.2"
-GLPK = "~0.15.3"
-IterativeSolvers = "~0.9.2"
 Plots = "~1.25.8"
 PlutoUI = "~0.7.34"
 PrettyTables = "~1.3.1"
-RowEchelon = "~0.2.1"
 """
 
 # ╔═╡ 00000000-0000-0000-0000-000000000002
@@ -244,28 +262,11 @@ uuid = "56f22d72-fd6d-98f1-02f0-08ddc0907c33"
 [[deps.Base64]]
 uuid = "2a0f44e3-6c83-55bd-87e4-b1978d98bd5f"
 
-[[deps.BenchmarkTools]]
-deps = ["JSON", "Logging", "Printf", "Profile", "Statistics", "UUIDs"]
-git-tree-sha1 = "be0cff14ad0059c1da5a017d66f763e6a637de6a"
-uuid = "6e4b80f9-dd63-53aa-95a3-0cdb28fa8baf"
-version = "1.3.0"
-
-[[deps.BinaryProvider]]
-deps = ["Libdl", "Logging", "SHA"]
-git-tree-sha1 = "ecdec412a9abc8db54c0efc5548c64dfce072058"
-uuid = "b99e7846-7c00-51b0-8f62-c81ae34c0232"
-version = "0.5.10"
-
 [[deps.Bzip2_jll]]
 deps = ["Artifacts", "JLLWrappers", "Libdl", "Pkg"]
 git-tree-sha1 = "19a35467a82e236ff51bc17a3a44b69ef35185a2"
 uuid = "6e34b625-4abd-537c-b88f-471c36dfa7a0"
 version = "1.0.8+0"
-
-[[deps.CEnum]]
-git-tree-sha1 = "215a9aa4a1f23fbd05b92769fdd62559488d70e9"
-uuid = "fa961155-64e5-5f13-b03f-caf6b980ea82"
-version = "0.4.1"
 
 [[deps.Cairo]]
 deps = ["Cairo_jll", "Colors", "Glib_jll", "Graphics", "Libdl", "Pango_jll"]
@@ -291,18 +292,6 @@ git-tree-sha1 = "bf98fa45a0a4cee295de98d4c1462be26345b9a1"
 uuid = "9e997f8a-9a97-42d5-a9f1-ce6bfc15e2c0"
 version = "0.1.2"
 
-[[deps.CodecBzip2]]
-deps = ["Bzip2_jll", "Libdl", "TranscodingStreams"]
-git-tree-sha1 = "2e62a725210ce3c3c2e1a3080190e7ca491f18d7"
-uuid = "523fee87-0ab8-5b00-afb7-3ecf72e48cfd"
-version = "0.7.2"
-
-[[deps.CodecZlib]]
-deps = ["TranscodingStreams", "Zlib_jll"]
-git-tree-sha1 = "ded953804d019afa9a3f98981d99b33e3db7b6da"
-uuid = "944b1d66-785c-5afd-91f1-9de20f533193"
-version = "0.7.0"
-
 [[deps.ColorSchemes]]
 deps = ["ColorTypes", "Colors", "FixedPointNumbers", "Luxor", "Random"]
 git-tree-sha1 = "5b7d2a8b53c68dfdbce545e957a3b5cc4da80b01"
@@ -320,11 +309,6 @@ deps = ["ColorTypes", "FixedPointNumbers", "Reexport"]
 git-tree-sha1 = "417b0ed7b8b838aa6ca0a87aadf1bb9eb111ce40"
 uuid = "5ae59095-9a9b-59fe-a467-6f913c188581"
 version = "0.12.8"
-
-[[deps.Combinatorics]]
-git-tree-sha1 = "08c8b6831dc00bfea825826be0bc8336fc369860"
-uuid = "861a8166-3701-5b0c-9a16-15d98fcdc6aa"
-version = "1.0.2"
 
 [[deps.Compat]]
 deps = ["Base64", "Dates", "DelimitedFiles", "Distributed", "InteractiveUtils", "LibGit2", "Libdl", "LinearAlgebra", "Markdown", "Mmap", "Pkg", "Printf", "REPL", "Random", "SHA", "Serialization", "SharedArrays", "Sockets", "SparseArrays", "Statistics", "Test", "UUIDs", "Unicode"]
@@ -451,22 +435,6 @@ git-tree-sha1 = "51d2dfe8e590fbd74e7a842cf6d13d8a2f45dc01"
 uuid = "0656b61e-2033-5cc2-a64a-77c0f6c09b89"
 version = "3.3.6+0"
 
-[[deps.GLPK]]
-deps = ["BinaryProvider", "CEnum", "GLPK_jll", "Libdl", "MathOptInterface"]
-git-tree-sha1 = "6f4e9754ee93e2b2ff40c0b0a6b4cdffd289190d"
-uuid = "60bf3e95-4087-53dc-ae20-288a0d20c6a6"
-version = "0.15.3"
-
-[[deps.GLPK_jll]]
-deps = ["Artifacts", "GMP_jll", "JLLWrappers", "Libdl", "Pkg"]
-git-tree-sha1 = "fe68622f32828aa92275895fdb324a85894a5b1b"
-uuid = "e8aa6df9-e6ca-548a-97ff-1f85fc5b8b98"
-version = "5.0.1+0"
-
-[[deps.GMP_jll]]
-deps = ["Artifacts", "Libdl"]
-uuid = "781609d7-10c4-51f6-84f2-b8444358ff6d"
-
 [[deps.GR]]
 deps = ["Base64", "DelimitedFiles", "GR_jll", "HTTP", "JSON", "Libdl", "LinearAlgebra", "Pkg", "Printf", "Random", "RelocatableFolders", "Serialization", "Sockets", "Test", "UUIDs"]
 git-tree-sha1 = "4a740db447aae0fbeb3ee730de1afbb14ac798a1"
@@ -568,12 +536,6 @@ version = "0.1.1"
 git-tree-sha1 = "fa6287a4469f5e048d763df38279ee729fbd44e5"
 uuid = "c8e1da08-722c-5040-9ed9-7db0dc04731e"
 version = "1.4.0"
-
-[[deps.IterativeSolvers]]
-deps = ["LinearAlgebra", "Printf", "Random", "RecipesBase", "SparseArrays"]
-git-tree-sha1 = "1169632f425f79429f245113b775a0e3d121457c"
-uuid = "42fd0dbc-a981-5370-80f2-aaf504508153"
-version = "0.9.2"
 
 [[deps.IteratorInterfaceExtensions]]
 git-tree-sha1 = "a3f24677c21f5bbe9d2a714f95dcd58337fb2856"
@@ -729,12 +691,6 @@ version = "0.5.9"
 deps = ["Base64"]
 uuid = "d6f4376e-aef5-505a-96c1-9c027394607a"
 
-[[deps.MathOptInterface]]
-deps = ["BenchmarkTools", "CodecBzip2", "CodecZlib", "JSON", "LinearAlgebra", "MutableArithmetics", "OrderedCollections", "Printf", "SparseArrays", "Test", "Unicode"]
-git-tree-sha1 = "625f78c57a263e943f525d3860f30e4d200124ab"
-uuid = "b8f27783-ece8-5eb3-8dc8-9495eed66fee"
-version = "0.10.8"
-
 [[deps.MbedTLS]]
 deps = ["Dates", "MbedTLS_jll", "Random", "Sockets"]
 git-tree-sha1 = "1c38e51c3d08ef2278062ebceade0e46cefc96fe"
@@ -767,12 +723,6 @@ uuid = "a63ad114-7e13-5084-954f-fe012c677804"
 
 [[deps.MozillaCACerts_jll]]
 uuid = "14a3606d-f60d-562e-9121-12d972cd8159"
-
-[[deps.MutableArithmetics]]
-deps = ["LinearAlgebra", "SparseArrays", "Test"]
-git-tree-sha1 = "842b5ccd156e432f369b204bb704fd4020e383ac"
-uuid = "d8a4904e-b15c-11e9-3269-09a3773c0cb0"
-version = "0.3.3"
 
 [[deps.NaNMath]]
 git-tree-sha1 = "b086b7ea07f8e38cf122f5016af580881ac914fe"
@@ -823,9 +773,9 @@ version = "1.50.3+0"
 
 [[deps.Parsers]]
 deps = ["Dates"]
-git-tree-sha1 = "13468f237353112a01b2d6b32f3d0f80219944aa"
+git-tree-sha1 = "0b5cfbb704034b5b4c1869e36634438a047df065"
 uuid = "69de0a69-1ddd-5017-9359-2bf0b02dc9f0"
-version = "2.2.2"
+version = "2.2.1"
 
 [[deps.Pixman_jll]]
 deps = ["Artifacts", "JLLWrappers", "Libdl", "Pkg"]
@@ -923,12 +873,6 @@ git-tree-sha1 = "838a3a4188e2ded87a4f9f184b4b0d78a1e91cb7"
 uuid = "ae029012-a4dd-5104-9daa-d747884805df"
 version = "1.3.0"
 
-[[deps.RowEchelon]]
-deps = ["LinearAlgebra"]
-git-tree-sha1 = "f479526c4f6efcbf01e7a8f4223d62cfe801c974"
-uuid = "af85af4c-bcd5-5d23-b03a-a909639aa875"
-version = "0.2.1"
-
 [[deps.Rsvg]]
 deps = ["Cairo", "Glib_jll", "Librsvg_jll"]
 git-tree-sha1 = "3d3dc66eb46568fb3a5259034bfc752a0eb0c686"
@@ -1020,12 +964,6 @@ uuid = "a4e569a6-e804-4fa4-b0f3-eef7a1d5b13e"
 [[deps.Test]]
 deps = ["InteractiveUtils", "Logging", "Random", "Serialization"]
 uuid = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
-
-[[deps.TranscodingStreams]]
-deps = ["Random", "Test"]
-git-tree-sha1 = "216b95ea110b5972db65aa90f88d8d89dcb8851c"
-uuid = "3bb67fe8-82b1-5028-8e26-92a6c54297fa"
-version = "0.9.6"
 
 [[deps.URIs]]
 git-tree-sha1 = "97bbe755a53fe859669cd907f2d96aee8d2c1355"
@@ -1274,26 +1212,34 @@ version = "0.9.1+5"
 # ╔═╡ Cell order:
 # ╟─6b1ad54f-61e4-490d-9032-7a557e8dc82f
 # ╠═7057c8e4-9e94-4a28-a885-07f5c96ebe39
-# ╠═95de0123-0c61-4434-bfb9-2772405ddecb
-# ╠═48d3ae44-a9fc-4174-a4c3-270306c3b08b
-# ╠═692db9df-1dec-4803-92bc-10584cb4ecc6
-# ╠═0cac34f9-ebad-435e-abde-d247b3d3d67c
-# ╠═f4053c75-d6d5-4c89-8cd1-5428bfa208f5
-# ╠═78158e1f-75a1-4d13-b664-a71508dc371b
-# ╠═46359bdd-1d48-4d76-b229-72df140b8588
-# ╠═096dae0c-d3b9-46e5-b017-9616d76f5c16
-# ╟─290e324f-3c30-4a93-ac74-a89310a3303a
-# ╠═826d5250-4bb4-441c-b9ec-05474aa985ab
+# ╟─87a183bc-3857-4189-8103-18c46ff3245d
+# ╠═5338451e-3c4b-4030-bbbb-42eaf4209a89
+# ╠═527e9a00-0401-4159-bc77-f4ba246246d2
+# ╠═2fda4bdd-d1bb-4a40-830f-351f0396aab3
+# ╠═58b065f8-e0d6-4a5a-963e-ec3c74c93bb2
+# ╠═71c5c116-1596-41d4-a3d9-19dfc562cd58
+# ╠═7a236c7a-cd55-4cdf-8eb3-6fdd2c2fcb41
 # ╟─6970dab5-16bd-4898-b88d-723cb1b3d89e
 # ╠═97b0763d-dcab-4afa-b660-52e18b3d523f
-# ╠═ef642527-9188-47ce-9c5b-a6dd83643170
-# ╠═09680068-b8a5-43b7-8e5e-c5cdae9ae00c
-# ╠═5e52fc43-7835-4f92-a417-5ac2a599f78b
+# ╠═c4e12e34-607a-4d04-a932-ddb7257722ed
+# ╠═a14b63fa-bf1a-4f76-8e1d-045f73f5220b
+# ╠═43e8450e-2c58-4a5c-8379-7516fc704474
+# ╠═e2080a08-8cbe-46af-8089-03d6e240af61
+# ╠═9737f03c-4026-43f5-8669-88fffe7d6c0a
+# ╠═cb007868-e26a-4a37-9127-cf9fbdccd7c0
+# ╠═7094522a-0812-4dab-ba83-8a586f4c4f44
+# ╠═cadd88e7-70ea-46c7-acec-ef9c2f8b7271
 # ╟─b473b17e-3bf5-4b6c-af24-fe57b5a7e7e9
 # ╠═999ae1fd-5341-4f66-9db2-dec53fa0cd49
-# ╟─b7e5d1a6-57ed-4d09-a039-a4bd12386367
+# ╠═aebe9da1-9cd3-4c53-9bb5-49a6ba4ebbea
+# ╠═b7e5d1a6-57ed-4d09-a039-a4bd12386367
 # ╠═4520fc6e-7305-487e-924d-af22406e6d45
-# ╠═83405a30-faf8-4b6a-8769-5e9b7039faa1
+# ╠═e8b14809-812f-42a3-9843-8272ecc00b1d
+# ╟─03de7e66-3503-4496-b621-10d6c7cb7c21
+# ╟─2d6d8dc4-7805-4351-bd68-6cdaf12f3d09
+# ╠═f2eae514-1b7c-4bd8-bca9-4c711815f13d
+# ╠═67f5db98-88d0-11ec-27ac-b57538a166f4
+# ╠═267865de-1b5c-4579-861b-c6c46beb4739
 # ╟─ab2bcfd5-3ba7-4388-8a3c-2cb95fba989a
 # ╟─00000000-0000-0000-0000-000000000001
 # ╟─00000000-0000-0000-0000-000000000002

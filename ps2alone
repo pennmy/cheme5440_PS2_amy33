@@ -50,7 +50,7 @@ begin
 	push!(reaction_array,"v₁, Aspartate+Citrulline, Argininosuccinate,false")
 	push!(reaction_array,"v₂, Argininosuccinate, Fumarate+Arginine, false")
 	push!(reaction_array,"v₃, Arginine, Ornithine+Urea, false")
-	push!(reaction_array,"v₄, Ornithine+CarbamoylPhosphate, Citrulline, false")
+	push!(reaction_array,"v₄, Ornithine+Carbamoyl Phosphate, Citrulline, false")
 	push!(reaction_array,"v₅, Citrulline, Arginine, false")
 
 	# exchange reactions 
@@ -75,4 +75,50 @@ species_array
 
 S
 
+
 #### Convex analysis: extreme pathways
+begin 
+
+	# compute the extreme pathways Tableu -
+	PM = lib.expa(S)
+	
+	# P constaints the extreme pathways (rows) and 𝒩 is the "balanced" array (should be all zeros) -
+	P = PM[:,1:ℛ]
+	𝒩 = PM[:,(ℛ+1):end]
+
+	# show -
+	nothing
+end
+
+size(P)
+
+rank(P)
+P
+
+#### Reaction connectivity array (RCA)
+
+function binary_stoichiometric_matrix(matrix::Array{Float64,2})::Array{Int64,2}
+
+	# initialize -
+	(ℳ,ℛ) = size(matrix)
+	B = Array{Int64,2}(undef,ℳ,ℛ)
+
+	for row_index ∈ 1:ℳ
+		for col_index ∈ 1:ℛ
+
+			old_value = matrix[row_index,col_index]
+			if (old_value == 0.0)
+				B[row_index,col_index] = 0
+			else
+				B[row_index,col_index] = 1
+			end
+		end
+	end
+	
+	# return -
+	return B
+end
+
+B = S |> binary_stoichiometric_matrix
+RCA = transpose(B)*B
+diag(RCA)
