@@ -15,6 +15,11 @@ html"""
 Smith School of Chemical and Biomolecular Engineering, Cornell University, Ithaca NY 14850</p>
 """
 
+# ╔═╡ 3bcfac10-ce05-4631-b654-042dbb6c4c19
+md"""
+Answers to the problem set question are at the bottom.
+"""
+
 # ╔═╡ 87a183bc-3857-4189-8103-18c46ff3245d
 md"""
 #### Build the stoichiometric array
@@ -53,6 +58,11 @@ md"""
 #### Metabolite connectivity array (MCA)
 """
 
+# ╔═╡ b6095360-95ce-4f5d-bac9-b20f791235f1
+md"""
+B is the binary stoichiometric matrix.
+"""
+
 # ╔═╡ b7e5d1a6-57ed-4d09-a039-a4bd12386367
 md"""
 #### Reaction connectivity array (RCA)
@@ -65,24 +75,27 @@ md"""
 
 # ╔═╡ 2d6d8dc4-7805-4351-bd68-6cdaf12f3d09
 md"""
-1b. There are 4 extreme pathways. v₃ is the reaction that produces urea, and it is non zero in 2 of the pathways, only 2 extreme pathways will result in urea.
+1b. There are 9 extreme pathways. v₃ is the reaction that produces urea, and it is non-zero in 3 of the pathways, only 3 extreme pathways will result in urea.
 """
 
 # ╔═╡ f2eae514-1b7c-4bd8-bca9-4c711815f13d
 html"""
 <p> Reaction fractions: <br>  
 
-v₁ : 2/4 </br>
-v₂ : 2/4 </br>
-v₃ : 2/4 </br>
-v₄ : 4/4 </br>
-v₅ : 2/4 </br>
-b₁ : 4/4 </br>
-b₂ : 2/4 </br>
-b₃ : 2/4 </br>
-b₄ : 2/4 </br>
-b₅ : 2/4 </br>
-b₆ : 2/4 </br>
+v₁ : 3/9 = 0.33 </br>
+v₂ : 3/9 = 0.33 </br>
+v₃ : 3/9 = 0.33 </br>
+v₄ : 4/9 = 0.44  </br>
+Fv₅: 3/9 = 0.33  </br>
+Rv₅: 2/9 = 0.22  </br>
+b₁ : 4/9 = 0.44  </br>
+b₂ : 3/9 = 0.33  </br>
+b₃ : 3/9 = 0.33  </br>
+b₄ : 3/9 = 0.33  </br>
+Fb₅: 3/9 = 0.33  </br>
+Rb₅: 2/9 = 0.22  </br>
+Fb₆ : 3/9 = 0.33  </br>
+Rb₆ : 2/9 = 0.22  </br>
 
 </p>
 """
@@ -94,7 +107,7 @@ md"""
 
 # ╔═╡ 64e2ef77-e1b5-4ced-841a-06a73de67e13
 html"""
-<p> Connectivity of the metabolites: <br> 
+<p> Connectivity of the metabolites (most to least): <br> 
 1. Arginine </br>
 2. Citrulline, Ornithine </br>
 3. Argininosuccinate, Aspartate, Carbamoyl Phosphate, Fumarate, Urea </br>
@@ -106,8 +119,8 @@ html"""
 html"""
 <p> Connectivity of reactions: <br> 
 1. v₁, v₂, v₃, v₄ </br>
-2. v₅ </br>
-3. b₁, b₂, b₃, b₄, b₅, b₆
+2. Fv₅, Rv₅ </br>
+3. b₁, b₂, b₃, b₄, Fb₅, Rb₅, Fb₆, Rb₆
 </p>
 """
 
@@ -170,14 +183,14 @@ begin
 	push!(reaction_array,"b₃, Fumarate, ∅, false")
 	push!(reaction_array,"b₄, Urea, ∅, false")
 	push!(reaction_array,"b₅, ∅, Ornithine, true")
-	push!(reaction_array,"b₆, Arginine, ∅, false")
-	
+	push!(reaction_array,"b₆, Arginine, ∅, true")
 	
 	# compute the stoichiometric matrix -
 	# the optional expand arguement = should we split reversible reactions? (default: false)
-	(S, species_array, reaction_name_array) = lib.build_stoichiometric_matrix(reaction_array;);
+	(S, species_array, reaction_name_array) = lib.build_stoichiometric_matrix(reaction_array; expand = true);
 	# show -
 	nothing
+	
 end
 
 # ╔═╡ 2fda4bdd-d1bb-4a40-830f-351f0396aab3
@@ -191,24 +204,6 @@ S
 
 # ╔═╡ 7a236c7a-cd55-4cdf-8eb3-6fdd2c2fcb41
 B = S |> binary_stoichiometric_matrix
-
-# ╔═╡ 999ae1fd-5341-4f66-9db2-dec53fa0cd49
-MCA = B*transpose(B)
-
-# ╔═╡ aebe9da1-9cd3-4c53-9bb5-49a6ba4ebbea
-diag(MCA)
-
-# ╔═╡ 2feb2c35-b3c4-4e59-87a7-a2c1883c5449
-diag(MCA)
-
-# ╔═╡ 4520fc6e-7305-487e-924d-af22406e6d45
-RCA = transpose(B)*B
-
-# ╔═╡ e8b14809-812f-42a3-9843-8272ecc00b1d
-diag(RCA)
-
-# ╔═╡ 7e65a730-b396-4229-9064-65cb4bcb87cb
-diag(RCA)
 
 # ╔═╡ cb007868-e26a-4a37-9127-cf9fbdccd7c0
 reaction_name_array[3]
@@ -235,9 +230,6 @@ end
 # ╔═╡ c4e12e34-607a-4d04-a932-ddb7257722ed
 size(P)
 
-# ╔═╡ a14b63fa-bf1a-4f76-8e1d-045f73f5220b
-rank(P)
-
 # ╔═╡ 43e8450e-2c58-4a5c-8379-7516fc704474
 P
 
@@ -246,6 +238,27 @@ P
 
 # ╔═╡ 9737f03c-4026-43f5-8669-88fffe7d6c0a
 PM
+
+# ╔═╡ a14b63fa-bf1a-4f76-8e1d-045f73f5220b
+rank(P)
+
+# ╔═╡ 999ae1fd-5341-4f66-9db2-dec53fa0cd49
+MCA = B*transpose(B)
+
+# ╔═╡ aebe9da1-9cd3-4c53-9bb5-49a6ba4ebbea
+diag(MCA)
+
+# ╔═╡ 4520fc6e-7305-487e-924d-af22406e6d45
+RCA = transpose(B)*B
+
+# ╔═╡ e8b14809-812f-42a3-9843-8272ecc00b1d
+diag(RCA)
+
+# ╔═╡ 2feb2c35-b3c4-4e59-87a7-a2c1883c5449
+diag(MCA)
+
+# ╔═╡ 7e65a730-b396-4229-9064-65cb4bcb87cb
+diag(RCA)
 
 # ╔═╡ ab2bcfd5-3ba7-4388-8a3c-2cb95fba989a
 html"""
@@ -1254,7 +1267,8 @@ version = "0.9.1+5"
 
 # ╔═╡ Cell order:
 # ╟─6b1ad54f-61e4-490d-9032-7a557e8dc82f
-# ╠═7057c8e4-9e94-4a28-a885-07f5c96ebe39
+# ╟─7057c8e4-9e94-4a28-a885-07f5c96ebe39
+# ╟─3bcfac10-ce05-4631-b654-042dbb6c4c19
 # ╟─87a183bc-3857-4189-8103-18c46ff3245d
 # ╠═5338451e-3c4b-4030-bbbb-42eaf4209a89
 # ╠═527e9a00-0401-4159-bc77-f4ba246246d2
@@ -1272,8 +1286,9 @@ version = "0.9.1+5"
 # ╠═cb007868-e26a-4a37-9127-cf9fbdccd7c0
 # ╟─b473b17e-3bf5-4b6c-af24-fe57b5a7e7e9
 # ╠═999ae1fd-5341-4f66-9db2-dec53fa0cd49
+# ╟─b6095360-95ce-4f5d-bac9-b20f791235f1
 # ╠═aebe9da1-9cd3-4c53-9bb5-49a6ba4ebbea
-# ╠═b7e5d1a6-57ed-4d09-a039-a4bd12386367
+# ╟─b7e5d1a6-57ed-4d09-a039-a4bd12386367
 # ╠═4520fc6e-7305-487e-924d-af22406e6d45
 # ╠═e8b14809-812f-42a3-9843-8272ecc00b1d
 # ╟─03de7e66-3503-4496-b621-10d6c7cb7c21
@@ -1283,7 +1298,7 @@ version = "0.9.1+5"
 # ╠═2feb2c35-b3c4-4e59-87a7-a2c1883c5449
 # ╠═a307b780-e453-4838-9476-2f3df885516a
 # ╟─64e2ef77-e1b5-4ced-841a-06a73de67e13
-# ╠═7e65a730-b396-4229-9064-65cb4bcb87cb
+# ╟─7e65a730-b396-4229-9064-65cb4bcb87cb
 # ╠═2e01c813-a59f-4126-be91-ed4afe54ffb2
 # ╟─b67259a5-8f42-4cba-bedd-6ab878e86fde
 # ╟─b2bbe6d9-19ea-4434-a721-52cb62e069a9
