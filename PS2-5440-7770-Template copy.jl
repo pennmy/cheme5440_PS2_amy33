@@ -239,6 +239,9 @@ P
 # ╔═╡ 9737f03c-4026-43f5-8669-88fffe7d6c0a
 PM
 
+# ╔═╡ c5ba3264-02af-45bb-947f-6201c409c4cb
+numPath = (sum(x->x>0, P, dims=1))
+
 # ╔═╡ a14b63fa-bf1a-4f76-8e1d-045f73f5220b
 rank(P)
 
@@ -253,6 +256,9 @@ RCA = transpose(B)*B
 
 # ╔═╡ e8b14809-812f-42a3-9843-8272ecc00b1d
 diag(RCA)
+
+# ╔═╡ ec565fcf-4eeb-40ca-8f09-58d1e9e6fc5f
+rfrac = floor.((sum(x->x>0, P, dims=1))./9, sigdigits = 2)
 
 # ╔═╡ 2feb2c35-b3c4-4e59-87a7-a2c1883c5449
 diag(MCA)
@@ -1293,6 +1299,8 @@ version = "0.9.1+5"
 # ╠═e8b14809-812f-42a3-9843-8272ecc00b1d
 # ╟─03de7e66-3503-4496-b621-10d6c7cb7c21
 # ╟─2d6d8dc4-7805-4351-bd68-6cdaf12f3d09
+# ╟─c5ba3264-02af-45bb-947f-6201c409c4cb
+# ╟─ec565fcf-4eeb-40ca-8f09-58d1e9e6fc5f
 # ╟─f2eae514-1b7c-4bd8-bca9-4c711815f13d
 # ╟─5b8257b3-230c-4acb-b1f2-6cca178403e1
 # ╠═2feb2c35-b3c4-4e59-87a7-a2c1883c5449
